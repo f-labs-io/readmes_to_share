@@ -195,8 +195,76 @@ INCLUSIVE = 0.4 # High recall (research)
 final_relevant = llm_classification and (confidence >= threshold)
 ```
 
+## Key Lessons Learned from Multi-Model Analysis
+
+### Major Discovery: GPT-5-mini is Too Inclusive
+After running all 5 models on 20k examples, we discovered:
+- **GPT-5-mini marks 346x more documents as relevant than it should**
+- When all 4 other models say "not relevant", Mini says "relevant" in 1,730 cases
+- When all 4 other models say "relevant", Mini says "not relevant" in only 5 cases
+- This severe bias makes Mini unsuitable for production use or maybe it is the best model for pairing with other models
+
+### Model Diversity > Model Agreement
+The Initially instinct is using models that agree frequently would be good pairs. **ITS NOT!**
+- GPT-5 and o3 agree 92.9% of the time - essentially one opinion, waste of money
+- Models that agree too much are redundant - you're paying twice for one perspective
+- **Disagreement is valuable** - it shows edge cases and different perspectives
+- The best configuration uses diverse models that catch different error types
+
+### Confidence Matters More Than Vote Count
+In 41% of 3-2 splits, the minority has higher confidence than the majority:
+- A single model with 0.95 confidence often beats 3 models at 0.65 confidence
+- When all models agree with low confidence, the agreement is suspicious
+- High confidence disagreements reveal genuinely ambiguous cases
+
+### The Dataset is Really Bad
+What we initially thought were model errors turned out to be dataset problems:
+- SARS research IS relevant to COVID-19 (both coronaviruses, ~80% genetic similarity)
+- The BEIR benchmark has ~25% mislabeled examples
+- Our cleaning approach achieves better semantic correctness than the original labels
+
+### Recommended Production Strategies
+
+Based on our analysis, here are the tested configurations:
+
+1. **EXCLUDE MINI + MAJORITY** (Most Reliable):
+   - Use gpt-5-nano, gpt-5, gpt-4.1, o3
+   - If 3+ agree with avg confidence > 0.7, trust them
+   - Avoids Mini's over-inclusion problem
+
+2. **BEST PAIR CONSENSUS** (Cost-Effective):
+   - Use gpt-5 + gpt-4.1 (90.8% agreement but still diverse)
+   - When they agree with both > 0.7 confidence, trust them
+   - When they disagree, use higher confidence or get third opinion
+
+3. **CONFIDENCE OVERRIDE** (Flexible):
+   - If ANY model has confidence > 0.9, trust it
+   - If 4 models agree with avg > 0.8, trust them (ignore outlier)
+   - Otherwise, use majority with confidence threshold
+
+4. **SMART COMBINATION** (Balanced):
+   - Primary: gpt-5 (best at identifying NOT relevant)
+   - Secondary: gpt-4.1 (balanced performance)
+   - If both agree OR one has conf > 0.85, trust it
+   - If disagree with both < 0.85, use gpt-5-nano as tiebreaker
+
+## Analysis Scripts Created
+
+Working with AI coding assistance, we created comprehensive analysis tools:
+
+- **analyze_model_consensus.py**: Shows pairwise agreement, consensus levels, confidence distributions
+- **analyze_agreement_details.py**: Deep dive into cases where models agree/disagree
+- **analyze_mini_outlier.py**: Specific analysis proving Mini's bias
+- **test_disagreement_strategies.py**: Tests different consensus strategies
+- **show_mini_wrong_examples.py**: Clear examples where Mini is demonstrably wrong
+
 ## Conclusion
 
-Through AI-assisted analysis of disagreements between different prompting approaches and the dataset, we discovered systematic patterns that led to a better understanding of document relevance. Our final cleaning pipeline leverages these insights to create more accurate and consistent relevance labels, with tunable precision/recall via confidence thresholds.
+Through iterative analysis with AI coding assistance, we discovered that:
+1. Model diversity beats redundant agreement
+2. Confidence encoding provides crucial signal beyond binary classification  
+3. GPT-5-mini has a severe inclusion bias making it unsuitable
+4. The original BEIR dataset has significant labeling issues
+5. Our multi-model approach achieves better semantic correctness
 
-The AI assistance enabled rapid testing of hundreds of examples and iterative refinement based on data patterns - achieving a more robust solution than manual analysis alone.
+The process demonstrated how AI coding assistance enables rapid hypothesis testing and pattern discovery at scale - analyzing 20k examples across 5 models to find optimal configurations that no single model could achieve alone.
