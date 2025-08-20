@@ -1,7 +1,9 @@
 # Document Relevance Cleaning Pipeline
 
 ## Overview
-We discovered that two different relevance classification approaches disagree on ~25% of documents in the BEIR benchmark. By analyzing these disagreements, we developed an improved cleaning pipeline to create more accurate relevance labels.
+We discovered that two different relevance classification approaches disagree on ~25% of documents in the BEIR benchmark. By analyzing these disagreements with AI coding agents, we developed an improved cleaning pipeline to create more accurate relevance labels.
+
+**Important: This entire analysis and development process was done using AI coding agents** - from the initial discovery of dataset issues to prompt refinement to the iterative analysis approach.
 
 ## The Discovery Process
 
@@ -67,7 +69,7 @@ Running the final cleaning prompt on 5 models:
 - **GPT-4.1**: Highly intelligent with large context
 - **o3**: OpenAI's reasoning specialist
 
-## The Process
+## The Process (AI-Assisted Development)
 
 ### Phase 1: Initial Testing (✅ Complete)
 - Ran first prompt (free-form with reasoning)
@@ -76,11 +78,11 @@ Running the final cleaning prompt on 5 models:
 ### Phase 2: Comparative Analysis (✅ Complete)
 - Developed second prompt based on first prompt's patterns
 - Found another 25% disagreement (different documents!)
-- Realized both prompts were finding real issues
+- Discovered both prompts were finding real issues
 
 ### Phase 3: Pattern Analysis (✅ Complete)
-- Studied which documents each prompt got "wrong"
-- Discovered they were often actually correct
+- Analyzed which documents each prompt got "wrong"
+- Found they were often actually correct
 - Identified systematic patterns in disagreements
 
 ### Phase 4: Final Prompt Development (✅ Complete)
@@ -91,12 +93,13 @@ Running the final cleaning prompt on 5 models:
 ### Phase 5: Multi-Model Testing (🔄 In Progress)
 - Running final prompt on all 5 models
 - Testing on ~20,000 examples
-- Will identify if one model is sufficient or need consensus
+- Will analyze results to identify optimal configuration
 
 ### Phase 6: Production Strategy (📋 Planned)
-Based on results:
-- Find optimal model(s) and confidence thresholds
-- Deploy for full dataset cleaning
+Will determine:
+- Optimal model(s) and confidence thresholds
+- Best rule combinations
+- Deployment for full dataset cleaning
 
 ## Key Innovation: Learning from Disagreements
 
@@ -140,14 +143,45 @@ python3 show_600_raw_examples.py
 3. **Validate that our approach is more consistent** than original dataset
 4. **Create scalable pipeline** for cleaning millions of documents
 
-## The Plan
+## What We're Actually Doing Now(The Real Process)
 
-1. **Testing (Current)**: Run final prompt on 20k examples with 5 models
-2. **Analysis**: Determine if one model is sufficient (hopefully GPT-5 or GPT-4.1)
-3. **Optimization**: Set confidence thresholds based on use case
-4. **Production**: Deploy most cost-effective solution
-   - Best case: Single model with threshold
-   - Alternative: 2-3 model consensus
+### Step 1: Run All 5 Models (Current)
+Running our final cleaning prompt on ~20k examples with all 5 models.
+
+### Step 2: Iterative Analysis (Next)
+Using AI assistance with `show_600_raw_examples.py` and similar scripts to:
+- Look at actual examples where models disagree
+- Understand patterns in the disagreements
+- Update thresholds and rules based on findings
+- Decide if more examples are needed
+- Continue until models are consistent enough
+
+**The exploration process:**
+- Try different thresholds (0.5, 0.6, 0.7, 0.8)
+- Test different agreement levels (2/5, 3/5, 4/5 models)
+- Combine agreement + confidence (e.g., 3 models agree AND avg confidence > 0.7)
+- Keep testing until finding what works
+
+Iterating many times:
+1. Examine examples
+2. Propose a rule
+3. Test if it works
+4. Adjust and repeat
+
+### Step 3: Find the Best Configuration
+Through this iterative process, we'll discover:
+- Maybe 1 model is enough (GPT-5 with confidence > 0.7)
+- Maybe need 2 models agreeing
+- Maybe need special rules for edge cases
+- We don't know yet - we'll find out by testing!
+
+### The Final Configuration Will Include:
+- Which model(s) to use
+- Confidence thresholds
+- Agreement rules
+- Any special handling
+
+This is exploratory - we're not assuming the answer, we're finding it through data!
 
 ## Confidence Threshold Strategy
 
@@ -163,4 +197,6 @@ final_relevant = llm_classification and (confidence >= threshold)
 
 ## Conclusion
 
-By analyzing disagreements between different prompting approaches and the dataset, we discovered systematic patterns that led to a better understanding of document relevance. Our final cleaning pipeline leverages these insights to create more accurate and consistent relevance labels, with tunable precision/recall via confidence thresholds.
+Through AI-assisted analysis of disagreements between different prompting approaches and the dataset, we discovered systematic patterns that led to a better understanding of document relevance. Our final cleaning pipeline leverages these insights to create more accurate and consistent relevance labels, with tunable precision/recall via confidence thresholds.
+
+The AI assistance enabled rapid testing of hundreds of examples and iterative refinement based on data patterns - achieving a more robust solution than manual analysis alone.
